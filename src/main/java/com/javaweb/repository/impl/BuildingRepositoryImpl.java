@@ -27,16 +27,16 @@ public class BuildingRepositoryImpl implements BuildingRepository {
 	public static void joinTable(Map<String, Object> param, List<String> typeCode, StringBuilder sql) {
 		String staffId = (String)param.get("staffId");
 		if(StringUtil.checkString(staffId)) {
-			sql.append(" inner join assigmentbuilding a on b.id = a.buildingid ");
+			sql.append(" inner join assignmentbuilding a on b.id = a.buildingid ");
 		}
 		if(typeCode != null && typeCode.size() != 0) {
-			sql.append("inner join buildingrenttype br on b.id = br.buildingid");
+			sql.append("inner join buildingrenttype br on b.id = br.buildingid ");
 			sql.append("inner join renttype r on br.renttypeid = r.id ");
 		}
 		String areaFrom = (String)param.get("areaFrom");
 		String areaTo = (String)param.get("areaTo");
 		if(StringUtil.checkString(areaFrom) || StringUtil.checkString(areaTo)) {
-			sql.append("inner join rentarea r on b.id = r.buildingid");
+			sql.append("inner join rentarea ra on b.id = ra.buildingid");
 		}
 	}
 	public static void queryNomal(Map<String, Object> param, List<String> typeCode, StringBuilder where) {
@@ -62,10 +62,10 @@ public class BuildingRepositoryImpl implements BuildingRepository {
 		String areaFrom = (String)param.get("areaFrom");
 		String areaTo = (String)param.get("areaTo");
 		if(StringUtil.checkString(areaFrom)) {
-			where.append(" and r.value >= " + areaFrom);
+			where.append(" and ra.value >= " + areaFrom);
 		}
 		if(StringUtil.checkString(areaTo)) {
-			where.append(" and r.value <= "+ areaTo);
+			where.append(" and ra.value <= "+ areaTo);
 		}
 		String rentPriceFrom = (String)param.get("rentPriceFrom");
 		String rentPriceTo = (String)param.get("rentPriceTo");
@@ -80,19 +80,19 @@ public class BuildingRepositoryImpl implements BuildingRepository {
 			for(String item : typeCode) {
 				code.add("'" + item + "'");
 			}
-			where.append("and r.code in (" + String.join("", code ) +  ") " );
+			where.append(" and r.code in (" + String.join(",", code ) +  ") " );
 		}
 	}
 
 	@Override
 	public List<BuildingEntity> findAll(Map<String, Object> param, List<String> typeCode) {
 		// TODO Auto-generated method stub
-		StringBuilder sql = new StringBuilder("SELECT b.id, b.name, b.districtid, b.street, b.ward, , b.rentprice, b.floorarea, b.servicefee, b.brokeragefee, b.managerphonenumber FROM building b ");
+		StringBuilder sql = new StringBuilder(" SELECT b.id, b.name, b.districtid, b.street, b.ward, b.rentprice, b.floorarea, b.servicefee, b.brokeragefee, b.managerphonenumber FROM building b ");
 		joinTable(param, typeCode, sql);
-		StringBuilder where = new StringBuilder("WHERE 1 = 1 ");
+		StringBuilder where = new StringBuilder(" WHERE 1 = 1 ");
 		queryNomal(param, typeCode, where);
 		querySpecial(param, typeCode, where);
-		where.append("GROUP BY id");
+		where.append(" GROUP BY id ");
 		sql.append(where);
 		List<BuildingEntity> result = new ArrayList<>();
 		try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASS);
