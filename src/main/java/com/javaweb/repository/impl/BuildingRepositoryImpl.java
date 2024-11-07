@@ -57,7 +57,7 @@ public class BuildingRepositoryImpl implements BuildingRepository {
 	public static void querySpecial(Map<String, Object> param, List<String> typeCode, StringBuilder where) {
 		String staffId = (String)param.get("staffId");
 		if(StringUtil.checkString(staffId)) {
-			where.append(" and a.buildingid = "+ staffId);
+			where.append(" and a.staffid = "+ staffId);
 		}
 		String areaFrom = (String)param.get("areaFrom");
 		String areaTo = (String)param.get("areaTo");
