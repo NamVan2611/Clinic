@@ -13,7 +13,7 @@ public class BuildingEntity {
     private String brokerageFee;
     private String managerPhoneNumber;
 
-    public Long getId() {
+	public Long getId() {
         return id;
     }
 

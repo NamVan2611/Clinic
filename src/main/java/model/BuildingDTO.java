@@ -11,9 +11,19 @@ public class BuildingDTO {
     private String serviceFee; 
     private String brokerageFee; 
     private String managerPhoneNumber; 
+    private String rentArea;
+    
 
  
-    public Long getId() {
+    public String getRentArea() {
+		return rentArea;
+	}
+
+	public void setRentArea(String rentArea) {
+		this.rentArea = rentArea;
+	}
+
+	public Long getId() {
         return id;
     }
 
