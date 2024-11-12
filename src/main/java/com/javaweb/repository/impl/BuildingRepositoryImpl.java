@@ -8,6 +8,8 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Repository;
 
@@ -61,11 +63,13 @@ public class BuildingRepositoryImpl implements BuildingRepository {
 		}
 		String areaFrom = (String)param.get("areaFrom");
 		String areaTo = (String)param.get("areaTo");
-		if(StringUtil.checkString(areaFrom)) {
-			where.append(" and ra.value >= " + areaFrom);
-		}
-		if(StringUtil.checkString(areaTo)) {
-			where.append(" and ra.value <= "+ areaTo);
+		if(StringUtil.checkString(areaFrom) || StringUtil.checkString(areaTo)) {
+			if(StringUtil.checkString(areaFrom)) {
+				where.append(" and ra.value >= " + areaFrom);
+			}
+			if(StringUtil.checkString(areaTo)) {
+				where.append(" and ra.value <= "+ areaTo);
+			}	
 		}
 		String rentPriceFrom = (String)param.get("rentPriceFrom");
 		String rentPriceTo = (String)param.get("rentPriceTo");
@@ -81,6 +85,12 @@ public class BuildingRepositoryImpl implements BuildingRepository {
 				code.add("'" + item + "'");
 			}
 			where.append(" and r.code in (" + String.join(",", code ) +  ") " );
+		}
+		if(typeCode != null && typeCode.size() != 0) {
+			where.append(" and( ");
+			String sql = typeCode.stream().map(it -> "r.code like" + "'%" + it + "%'").collect(Collectors.joining(" or "));
+			where.append(sql);
+			where.append(" )");
 		}
 	}
 
