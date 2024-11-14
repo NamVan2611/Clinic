@@ -1,4 +1,4 @@
-package com.javaweb.Util;
+package com.javaweb.util;
 
 public class StringUtil {
 	public static boolean checkString(String data) {

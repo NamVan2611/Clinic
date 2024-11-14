@@ -1,4 +1,4 @@
-package com.javaweb.Util;
+package com.javaweb.util;
 
 public class NumberUtil {
 	public static boolean isNumber(String value) {
