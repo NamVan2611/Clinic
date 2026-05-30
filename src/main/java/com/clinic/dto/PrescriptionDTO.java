@@ -2,6 +2,7 @@ package com.clinic.dto;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -24,6 +25,7 @@ public class PrescriptionDTO {
     @NotNull(message = "Appointment ID is required")
     private Long appointmentId;
 
+    @Size(max = 2000, message = "Notes cannot exceed 2000 characters")
     private String notes;
 
     private LocalDateTime createdAt;

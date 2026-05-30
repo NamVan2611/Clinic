@@ -82,9 +82,9 @@ public class PatientServiceImpl implements PatientService {
     @Override
     @Transactional
     public void delete(Long id) {
-        if (!patientRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Patient not found with id: " + id);
-        }
-        patientRepository.deleteById(id);
+        Patient entity = patientRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Patient not found with id: " + id));
+        entity.delete();
+        patientRepository.save(entity);
     }
 }

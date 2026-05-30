@@ -58,9 +58,9 @@ public class DoctorServiceImpl implements DoctorService {
     @Override
     @Transactional
     public void delete(Long id) {
-        if (!doctorRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Doctor not found with id: " + id);
-        }
-        doctorRepository.deleteById(id);
+        Doctor entity = doctorRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Doctor not found with id: " + id));
+        entity.delete();
+        doctorRepository.save(entity);
     }
 }

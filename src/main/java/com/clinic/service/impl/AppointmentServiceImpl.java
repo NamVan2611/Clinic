@@ -89,10 +89,10 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     @Transactional
     public void delete(Long id) {
-        if (!appointmentRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Appointment not found with id: " + id);
-        }
-        appointmentRepository.deleteById(id);
+        Appointment appointment = appointmentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Appointment not found with id: " + id));
+        appointment.delete();
+        appointmentRepository.save(appointment);
     }
 
     @Override
