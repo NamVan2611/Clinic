@@ -33,7 +33,7 @@ const DashboardPage = () => {
             </div>
             <h1 className="mt-6 text-3xl font-semibold leading-tight text-on-background">Clinic operations designed for modern care teams.</h1>
             <p className="mt-3 max-w-2xl font-body-lg text-slate-600">
-              Welcome back, {auth.userEmail}. Monitor care workflows, patient activity, and prescription delivery from a single polished workspace.
+              Welcome back, {auth.user?.username}. Monitor care workflows, patient activity, and prescription delivery from a single polished workspace.
             </p>
           </div>
 

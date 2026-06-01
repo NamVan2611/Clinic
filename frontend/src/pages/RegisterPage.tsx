@@ -1,6 +1,7 @@
 import { FormEvent, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { apiClient } from '../services/apiClient';
 
 const RegisterPage = () => {
   const auth = useAuth();
@@ -9,6 +10,8 @@ const RegisterPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -33,9 +36,21 @@ const RegisterPage = () => {
     setError('');
     setLoading(true);
 
-    await auth.signIn({ email, password, remember: true });
-    setLoading(false);
-    navigate('/login');
+    try {
+      await apiClient.register({
+        username: fullName,
+        email,
+        password,
+        roles: ['DOCTOR']
+      });
+      // Registration successful, redirect to login
+      navigate('/login', { replace: true });
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Registration failed. Please try again.';
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -137,14 +152,21 @@ const RegisterPage = () => {
                     </span>
                     <input
                       id="password"
-                      type="password"
+                      type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={(event) => setPassword(event.target.value)}
                       placeholder="••••••••"
                       className="w-full pl-10 pr-10 py-2.5 rounded-lg border border-outline-variant bg-surface font-body-md text-body-md input-focus-ring transition-all placeholder:text-outline/50"
                     />
-                    <button className="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-primary transition-colors" type="button" aria-label="Toggle password visibility">
-                      <span className="material-symbols-outlined text-[20px]">visibility</span>
+                    <button 
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-primary transition-colors" 
+                      type="button" 
+                      onClick={() => setShowPassword(!showPassword)}
+                      aria-label="Toggle password visibility"
+                    >
+                      <span className="material-symbols-outlined text-[20px]">
+                        {showPassword ? 'visibility_off' : 'visibility'}
+                      </span>
                     </button>
                   </div>
                 </div>
@@ -159,12 +181,22 @@ const RegisterPage = () => {
                     </span>
                     <input
                       id="confirm-password"
-                      type="password"
+                      type={showConfirmPassword ? 'text' : 'password'}
                       value={confirmPassword}
                       onChange={(event) => setConfirmPassword(event.target.value)}
                       placeholder="••••••••"
-                      className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-outline-variant bg-surface font-body-md text-body-md input-focus-ring transition-all placeholder:text-outline/50"
+                      className="w-full pl-10 pr-10 py-2.5 rounded-lg border border-outline-variant bg-surface font-body-md text-body-md input-focus-ring transition-all placeholder:text-outline/50"
                     />
+                    <button 
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-primary transition-colors" 
+                      type="button" 
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      aria-label="Toggle password visibility"
+                    >
+                      <span className="material-symbols-outlined text-[20px]">
+                        {showConfirmPassword ? 'visibility_off' : 'visibility'}
+                      </span>
+                    </button>
                   </div>
                 </div>
               </div>

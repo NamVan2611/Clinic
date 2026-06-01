@@ -1,46 +1,55 @@
 import React, { createContext, useContext, useMemo, useState } from 'react';
+import { apiClient, LoginResponse } from '../services/apiClient';
 
 export interface AuthCredentials {
-  email: string;
+  username: string;
   password: string;
-  remember: boolean;
 }
 
 export interface AuthContextValue {
   authenticated: boolean;
-  userEmail: string;
+  user: LoginResponse | null;
   signIn: (credentials: AuthCredentials) => Promise<void>;
   signOut: () => void;
+  loading: boolean;
+  error: string | null;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [authenticated, setAuthenticated] = useState(false);
-  const [userEmail, setUserEmail] = useState('');
+  const [user, setUser] = useState<LoginResponse | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const signIn = async ({ email, password, remember }: AuthCredentials) => {
-    return new Promise<void>((resolve) => {
-      window.setTimeout(() => {
-        setAuthenticated(true);
-        setUserEmail(email);
-        if (remember) {
-          localStorage.setItem('mediflow-auth', email);
-        }
-        resolve();
-      }, 900);
-    });
+  const signIn = async ({ username, password }: AuthCredentials) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await apiClient.login({ username, password });
+      apiClient.setToken(response.token);
+      setUser(response);
+      setAuthenticated(true);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Login failed';
+      setError(message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
   };
 
   const signOut = () => {
+    apiClient.clearToken();
     setAuthenticated(false);
-    setUserEmail('');
-    localStorage.removeItem('mediflow-auth');
+    setUser(null);
+    setError(null);
   };
 
   const value = useMemo(
-    () => ({ authenticated, userEmail, signIn, signOut }),
-    [authenticated, userEmail]
+    () => ({ authenticated, user, signIn, signOut, loading, error }),
+    [authenticated, user, loading, error]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -1,28 +1,27 @@
 import { FormEvent, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Particles from '../components/Particles';
 
 const LoginPage = () => {
   const auth = useAuth();
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [remember, setRemember] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!email.trim() || !password) {
-      setError('Please enter your email and password.');
+    if (!username.trim() || !password) {
       return;
     }
-    setError('');
-    setLoading(true);
 
-    await auth.signIn({ email, password, remember });
-    navigate('/dashboard');
+    try {
+      await auth.signIn({ username, password });
+      navigate('/dashboard');
+    } catch (err) {
+      // Error is already set in auth context
+    }
   };
 
   return (
@@ -47,19 +46,19 @@ const LoginPage = () => {
 
         <form className="flex flex-col gap-6" onSubmit={handleSubmit} noValidate>
           <div className="flex flex-col gap-2">
-            <label htmlFor="email" className="font-label-md text-label-md text-on-surface">
-              Email Address
+            <label htmlFor="username" className="font-label-md text-label-md text-on-surface">
+              Username
             </label>
             <div className="relative">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">mail</span>
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">person</span>
               <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                placeholder="dr.smith@mediflow.com"
+                id="username"
+                type="text"
+                value={username}
+                onChange={(event) => setUsername(event.target.value)}
+                placeholder="your.username"
                 className="w-full pl-10 pr-4 py-3 bg-surface-container border border-outline-variant rounded-lg font-body-md text-on-surface focus:ring-2 focus:ring-primary-container focus:border-primary-container transition-all outline-none"
-                autoComplete="email"
+                autoComplete="username"
               />
             </div>
           </div>
@@ -72,15 +71,20 @@ const LoginPage = () => {
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">lock</span>
               <input
                 id="password"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 placeholder="••••••••"
                 className="w-full pl-10 pr-12 py-3 bg-surface-container border border-outline-variant rounded-lg font-body-md text-on-surface focus:ring-2 focus:ring-primary-container focus:border-primary-container transition-all outline-none"
                 autoComplete="current-password"
               />
-              <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-primary transition-colors" aria-label="Toggle password visibility">
-                <span className="material-symbols-outlined">visibility</span>
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-primary transition-colors"
+                aria-label="Toggle password visibility"
+              >
+                <span className="material-symbols-outlined">{showPassword ? 'visibility_off' : 'visibility'}</span>
               </button>
             </div>
           </div>
@@ -90,8 +94,6 @@ const LoginPage = () => {
               <label className="flex items-center gap-2 cursor-pointer group">
                 <input
                   type="checkbox"
-                  checked={remember}
-                  onChange={(event) => setRemember(event.target.checked)}
                   className="w-4 h-4 rounded border-outline-variant text-primary-container focus:ring-primary-container"
                 />
                 <span className="font-label-md text-label-md text-on-surface-variant group-hover:text-on-surface transition-colors">
@@ -102,13 +104,13 @@ const LoginPage = () => {
                 Forgot password?
               </a>
             </div>
-            {error ? <p className="font-body-md text-body-md text-error">{error}</p> : null}
+            {auth.error ? <p className="font-body-md text-body-md text-error">{auth.error}</p> : null}
             <button
               type="submit"
-              className="w-full py-4 bg-primary-container text-white font-headline-sm rounded-lg hover:brightness-110 active:scale-[0.98] transition-all shadow-lg shadow-primary-container/20 flex items-center justify-center gap-2"
-              disabled={loading}
+              className="w-full py-4 bg-primary-container text-white font-headline-sm rounded-lg hover:brightness-110 active:scale-[0.98] transition-all shadow-lg shadow-primary-container/20 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={auth.loading}
             >
-              {loading ? (
+              {auth.loading ? (
                 <>
                   <span className="material-symbols-outlined animate-spin">progress_activity</span>
                   Authenticating...

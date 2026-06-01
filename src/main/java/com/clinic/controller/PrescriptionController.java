@@ -17,7 +17,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/prescriptions")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 @Tag(name = "Prescriptions", description = "Prescription management APIs")
 public class PrescriptionController {
 
