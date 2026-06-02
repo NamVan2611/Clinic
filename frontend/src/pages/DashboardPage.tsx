@@ -1,121 +1,206 @@
+﻿import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Sidebar from '../components/Sidebar';
+import TopNav from '../components/TopNav';
+import RecentAppointmentsTable from '../components/RecentAppointmentsTable';
+import RecentPatientsList from '../components/RecentPatientsList';
 import { useAuth } from '../context/AuthContext';
-
-const summary = [
-  { label: 'Upcoming appointments', value: '18', delta: '+12%' },
-  { label: 'Active patients', value: '324', delta: '+8%' },
-  { label: 'Prescriptions filled', value: '86', delta: '+5%' }
-];
-
-const features = [
-  { title: 'Smart scheduling', description: 'Automatically optimize your calendar and reduce patient wait time.' },
-  { title: 'Patient records', description: 'Securely store patient history, documents, and treatment plans.' },
-  { title: 'Prescription workflows', description: 'Generate, approve, and send prescriptions in a single flow.' }
-];
+import {
+  AppointmentItem,
+  CalendarDate,
+  PatientItem,
+  ScheduleItem,
+  StatCardItem,
+  VisitBar,
+  calendarDates,
+  recentAppointments,
+  recentPatients,
+  scheduleItems,
+  statCards,
+  visitBars
+} from '../data/dashboardData';
 
 const DashboardPage = () => {
   const auth = useAuth();
   const navigate = useNavigate();
+  const [search, setSearch] = useState('');
+  const [period, setPeriod] = useState('Last 7 Days');
+
+  const filteredAppointments = useMemo(
+    () =>
+      recentAppointments.filter((appointment: AppointmentItem) =>
+        [appointment.patient, appointment.doctor, appointment.date, appointment.status]
+          .join(' ')
+          .toLowerCase()
+          .includes(search.toLowerCase())
+      ),
+    [search]
+  );
+
+  const filteredPatients = useMemo(
+    () =>
+      recentPatients.filter((patient: PatientItem) =>
+        [patient.name, patient.id, patient.age]
+          .join(' ')
+          .toLowerCase()
+          .includes(search.toLowerCase())
+      ),
+    [search]
+  );
 
   const handleLogout = () => {
     auth.signOut();
     navigate('/', { replace: true });
   };
 
+  const userName = auth.user?.username ?? 'Dr. Smith';
+  const userRole = auth.user?.roles?.includes('ADMIN') ? 'Administrator' : 'Administrator';
+
   return (
-    <main className="min-h-screen bg-background text-on-background">
-      <div className="mx-auto max-w-[1140px] px-6 py-8 lg:px-10">
-        <header className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <div className="inline-flex items-center gap-3 rounded-2xl bg-primary-container/10 px-4 py-2 text-primary">
-              <span className="material-symbols-outlined">medical_services</span>
-              <span className="font-semibold">MediFlow Pro</span>
-            </div>
-            <h1 className="mt-6 text-3xl font-semibold leading-tight text-on-background">Clinic operations designed for modern care teams.</h1>
-            <p className="mt-3 max-w-2xl font-body-lg text-slate-600">
-              Welcome back, {auth.user?.username}. Monitor care workflows, patient activity, and prescription delivery from a single polished workspace.
-            </p>
-          </div>
+    <main className="min-h-screen bg-surface text-on-surface">
+      <Sidebar onLogout={handleLogout} />
 
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="inline-flex items-center justify-center rounded-xl border border-outline px-5 py-3 text-sm font-semibold text-on-surface transition hover:bg-surface-container"
-            >
-              Sign Out
-            </button>
-            <button
-              type="button"
-              className="inline-flex items-center justify-center rounded-xl bg-primary-container px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-primary-container/20 transition hover:brightness-110"
-            >
-              Schedule a follow-up
-            </button>
-          </div>
-        </header>
+      <div className="ml-[260px] min-h-screen">
+        <TopNav searchTerm={search} onSearchChange={setSearch} userName={userName} userRole={userRole} />
 
-        <section className="mt-10 grid gap-6 lg:grid-cols-3">
-          {summary.map((item) => (
-            <article key={item.label} className="rounded-3xl border border-outline-variant/60 bg-white p-6 shadow-sm">
-              <p className="font-label-sm text-label-sm uppercase tracking-[0.22em] text-slate-500">{item.label}</p>
-              <div className="mt-4 flex items-end justify-between gap-4">
-                <p className="text-3xl font-semibold text-on-background">{item.value}</p>
-                <span className="rounded-full bg-primary-container/10 px-3 py-1 text-sm font-semibold text-primary">{item.delta}</span>
-              </div>
-            </article>
-          ))}
-        </section>
-
-        <section className="mt-10 grid gap-6 lg:grid-cols-[1.4fr_0.9fr]">
-          <div className="rounded-[28px] bg-surface-container-high p-8 shadow-lg shadow-slate-200/60">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="font-label-sm text-label-sm uppercase tracking-[0.22em] text-slate-500">Today&apos;s priority</p>
-                <h2 className="mt-3 text-2xl font-semibold text-on-background">Review patient charts and refill authorizations</h2>
-              </div>
-              <span className="inline-flex h-12 w-12 items-center justify-center rounded-3xl bg-primary/10 text-primary">
-                <span className="material-symbols-outlined">check_circle</span>
-              </span>
-            </div>
-            <div className="mt-8 grid gap-4 sm:grid-cols-2">
-              <div className="rounded-3xl bg-white p-5 shadow-sm">
-                <p className="font-label-sm text-label-sm uppercase tracking-[0.18em] text-slate-500">Waiting rooms</p>
-                <p className="mt-3 text-xl font-semibold text-on-background">4 rooms ready</p>
-              </div>
-              <div className="rounded-3xl bg-white p-5 shadow-sm">
-                <p className="font-label-sm text-label-sm uppercase tracking-[0.18em] text-slate-500">Messages</p>
-                <p className="mt-3 text-xl font-semibold text-on-background">12 unread</p>
-              </div>
-            </div>
-          </div>
-
-          <aside className="space-y-6">
-            {features.map((feature) => (
-              <div key={feature.title} className="rounded-[28px] bg-white p-6 shadow-sm border border-outline-variant/60">
-                <p className="font-headline-sm text-headline-sm text-on-background">{feature.title}</p>
-                <p className="mt-3 font-body-md text-body-md text-slate-600">{feature.description}</p>
+        <div className="pt-24 pb-container-padding px-container-padding">
+          <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {statCards.map((card: StatCardItem) => (
+              <div key={card.title} className="bg-surface-container-lowest p-6 rounded-xl glass-border flex items-center justify-between shadow-sm">
+                <div>
+                  <p className="text-outline font-label-sm text-label-sm mb-1 uppercase tracking-wider">{card.title}</p>
+                  <h3 className="font-headline-lg text-headline-lg text-on-surface">{card.value}</h3>
+                  <span className="text-secondary font-label-sm text-[11px] flex items-center mt-1">
+                    <span className="material-symbols-outlined text-[14px] mr-1">trending_up</span>
+                    {card.subtitle}
+                  </span>
+                </div>
+                <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${card.iconBg} ${card.iconColor}`}>
+                  <span className="material-symbols-outlined text-[28px]">{card.icon}</span>
+                </div>
               </div>
             ))}
-          </aside>
-        </section>
+          </section>
 
-        <section className="mt-10 grid gap-6 lg:grid-cols-3">
-          <div className="rounded-[28px] bg-primary-container p-6 text-white shadow-lg shadow-primary-container/20">
-            <p className="font-label-sm uppercase tracking-[0.22em] opacity-80">Team efficiency</p>
-            <h3 className="mt-3 text-2xl font-semibold">Drive faster consultations</h3>
-            <p className="mt-4 font-body-md text-white/90">Keep every patient touchpoint connected across care coordinators, nurses, and physicians.</p>
+          <section className="bento-grid gap-6">
+            <div className="col-span-12 lg:col-span-8 bg-surface-container-lowest p-6 rounded-xl glass-border shadow-sm">
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h2 className="font-headline-sm text-headline-sm text-on-surface">Patient Visits</h2>
+                  <p className="text-label-sm text-outline">Weekly overview of clinic flow</p>
+                </div>
+                <select
+                  className="bg-surface border border-outline-variant rounded-lg text-label-sm px-3 py-1.5 focus:ring-primary focus:border-primary"
+                  value={period}
+                  onChange={(event) => setPeriod(event.target.value)}
+                >
+                  <option>Last 7 Days</option>
+                  <option>Last 30 Days</option>
+                </select>
+              </div>
+              <div className="h-[280px] w-full relative flex items-end justify-between gap-2 px-2">
+                {visitBars.map((bar: VisitBar) => (
+                  <div key={bar.label} className="flex-1 flex flex-col justify-end items-center group">
+                    <div
+                      className="w-full bg-primary/20 rounded-t-lg transition-all duration-500 hover:bg-primary"
+                      style={{ height: `${bar.value}%` }}
+                    />
+                    <span className="text-[10px] text-outline mt-2">{bar.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="col-span-12 lg:col-span-4 bg-surface-container-lowest p-6 rounded-xl glass-border shadow-sm">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="font-headline-sm text-headline-sm text-on-surface">Calendar</h2>
+                <button className="text-primary hover:bg-primary/5 p-1 rounded-full transition-colors" type="button" aria-label="Next month">
+                  <span className="material-symbols-outlined">chevron_right</span>
+                </button>
+              </div>
+              <div className="grid grid-cols-7 gap-2 text-center mb-4">
+                {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((day) => (
+                  <span key={day} className="text-[10px] font-bold text-outline uppercase">
+                    {day}
+                  </span>
+                ))}
+              </div>
+              <div className="grid grid-cols-7 gap-2 text-center">
+                {calendarDates.map((date: CalendarDate) => (
+                  <span
+                    key={date.day}
+                    className={`text-label-sm p-2 rounded-lg ${
+                      date.variant === 'muted'
+                        ? 'text-outline'
+                        : date.variant === 'highlight'
+                        ? 'bg-secondary-container text-on-secondary-container rounded-lg font-bold'
+                        : date.variant === 'primary'
+                        ? 'bg-primary text-on-primary rounded-lg font-bold shadow-md'
+                        : 'text-on-surface'
+                    }`}
+                  >
+                    {date.day}
+                  </span>
+                ))}
+              </div>
+              <div className="mt-8 pt-6 border-t border-outline-variant">
+                <p className="text-label-sm font-bold text-on-surface mb-4">Today's Schedule</p>
+                <div className="space-y-4">
+                  {scheduleItems.map((item: ScheduleItem) => (
+                    <div key={item.title} className="flex items-center gap-3">
+                      <div className={`w-1 h-8 rounded-full ${item.tone === 'primary' ? 'bg-primary' : 'bg-tertiary-container'}`} />
+                      <div>
+                        <p className="text-label-md font-bold text-on-surface">{item.title}</p>
+                        <p className="text-[11px] text-outline">{item.time}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="col-span-12 lg:col-span-8 bg-surface-container-lowest p-6 rounded-xl glass-border shadow-sm">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="font-headline-sm text-headline-sm text-on-surface">Recent Appointments</h2>
+                <button type="button" className="text-primary text-label-md font-bold hover:underline">
+                  View All
+                </button>
+              </div>
+              <RecentAppointmentsTable appointments={filteredAppointments} />
+            </div>
+
+            <div className="col-span-12 lg:col-span-4 bg-surface-container-lowest p-6 rounded-xl glass-border shadow-sm">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="font-headline-sm text-headline-sm text-on-surface">Recent Patients</h2>
+                <button
+                  type="button"
+                  className="text-primary hover:bg-primary/5 p-1 rounded-full transition-colors"
+                  aria-label="Add patient"
+                >
+                  <span className="material-symbols-outlined">person_add</span>
+                </button>
+              </div>
+              <RecentPatientsList patients={filteredPatients} />
+            </div>
+          </section>
+
+          <div className="mt-12 p-6 rounded-2xl bg-surface-variant/30 border border-outline-variant/50 flex items-center justify-between flex-col gap-6 md:flex-row">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-surface flex items-center justify-center text-primary">
+                <span className="material-symbols-outlined text-3xl">assignment_turned_in</span>
+              </div>
+              <div>
+                <h4 className="font-headline-sm text-headline-sm text-on-surface">Workflow assistant</h4>
+                <p className="font-body-md text-body-md text-on-surface-variant">
+                  Organize rounds, follow up on prescriptions, and keep patient handoffs seamless.
+                </p>
+              </div>
+            </div>
+            <button type="button" className="px-6 py-2 rounded-lg bg-surface-container-highest text-on-surface font-label-md text-label-md hover:bg-primary hover:text-white transition-all">
+              Review tasks
+            </button>
           </div>
-          <div className="rounded-[28px] bg-surface-container-high p-6 shadow-sm">
-            <p className="font-label-sm uppercase tracking-[0.22em] text-slate-500">Patient experience</p>
-            <h3 className="mt-3 text-xl font-semibold text-on-background">Personalized care at scale</h3>
-            <p className="mt-4 font-body-md text-slate-600">Structured patient check-ins, shared care plans, and faster follow-ups.</p>
-          </div>
-          <div className="rounded-[28px] bg-surface-container-high p-6 shadow-sm">
-            <p className="font-label-sm uppercase tracking-[0.22em] text-slate-500">Security</p>
-            <h3 className="mt-3 text-xl font-semibold text-on-background">Built for compliance</h3>
-            <p className="mt-4 font-body-md text-slate-600">Role-aware access controls and audit-ready activity logs keep your clinic secure.</p>
-          </div>
-        </section>
+        </div>
       </div>
     </main>
   );

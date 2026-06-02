@@ -17,9 +17,19 @@ export interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+const storedToken = localStorage.getItem('auth_token');
+const storedUser = localStorage.getItem('auth_user');
+
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [authenticated, setAuthenticated] = useState(false);
-  const [user, setUser] = useState<LoginResponse | null>(null);
+  const [authenticated, setAuthenticated] = useState<boolean>(Boolean(storedToken));
+  const [user, setUser] = useState<LoginResponse | null>(() => {
+    if (!storedUser) return null;
+    try {
+      return JSON.parse(storedUser) as LoginResponse;
+    } catch {
+      return null;
+    }
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,6 +39,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const response = await apiClient.login({ username, password });
       apiClient.setToken(response.token);
+      localStorage.setItem('auth_user', JSON.stringify(response));
       setUser(response);
       setAuthenticated(true);
     } catch (err) {
@@ -42,6 +53,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signOut = () => {
     apiClient.clearToken();
+    localStorage.removeItem('auth_user');
     setAuthenticated(false);
     setUser(null);
     setError(null);
